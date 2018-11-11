@@ -5,7 +5,7 @@ import (
 	"runtime"
 )
 
-func (r Rule) Applies() bool {
+func (r Rule) Applies(prof *Profile) bool {
 	if r.OS.Name != "" {
 		osName := runtime.GOOS
 		if osName == "darwin" {
@@ -24,7 +24,7 @@ func (r Rule) Applies() bool {
 	return true
 }
 
-func EvaluateRules(rules []Rule) bool {
+func EvaluateRules(rules []Rule, profile *Profile) bool {
 	if rules == nil {
 		return true
 	}
@@ -32,7 +32,7 @@ func EvaluateRules(rules []Rule) bool {
 	// TODO: Does it matches how official launcher evaluates them?
 	last := ActDisallow
 	for _, rule := range rules {
-		if rule.Applies() {
+		if rule.Applies(profile) {
 			last = rule.Action
 		}
 	}

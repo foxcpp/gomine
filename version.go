@@ -1,5 +1,14 @@
 package gomine
 
+type Asset struct {
+	Hash string `json:"hash"`
+	Size uint64 `json:"size"`
+}
+
+type AssetIndexContents struct {
+	Objects map[string]Asset `json:"objects"`
+}
+
 type Artifact struct {
 	SHA1 string `json:"sha1"`
 	Size uint64 `json:"size"`
@@ -47,6 +56,9 @@ type Lib struct {
 	} `json:"natives"`
 	Name  string `json:"name"`
 	Rules []Rule `json:"rules"`
+	ExtractRules struct {
+		Exclude []string `json:"exclude"`
+	} `json:"extract"`
 }
 
 // TODO

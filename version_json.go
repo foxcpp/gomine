@@ -9,6 +9,22 @@ import (
 var ErrIncompatibleFormat = errors.New("ReadVersionJSON: JSON format version is higher than supported by library")
 var ErrInvalidFormat = errors.New("ReadVersionJSON: passed JSON object doesn't matches expected schema")
 
+var defaultJVMArgs = []Argument{
+	{Value: "-Xss1M"},
+	{Value: "-Djava.library.path=${natives_directory}"},
+	{Value: "-Dminecraft.launcher.brand=${launcher_name}"},
+	{Value: "-Dminecraft.launcher.version=${launcher_version}"},
+	{Value: "-cp"},
+	{Value:"${classpath}"},
+	{Value: "-Xmx2G"},
+	{Value: "-XX:+UnlockExperimentalVMOptions"},
+	{Value: "-XX:+UseG1GC"},
+	{Value: "-XX:G1NewSizePercent=20"},
+	{Value: "-XX:G1ReservePercent=20"},
+	{Value: "-XX:MaxGCPauseMillis=50"},
+	{Value: "-XX:G1HeapRegionSize=32M"},
+}
+
 type versionJson struct {
 	Version
 	MinimumLauncherVersion uint   `json:"minimumLauncherVersion"`
@@ -88,6 +104,10 @@ func ReadVersionJSON(in []byte) (*Version, error) {
 		for _, arg := range strings.Split(raw.MinecraftArgs, " ") {
 			raw.Version.GameArgs = append(raw.Version.GameArgs, Argument{Value: arg})
 		}
+	}
+
+	if raw.Version.JVMArgs == nil || len(raw.Version.JVMArgs) == 0 {
+		raw.Version.JVMArgs = defaultJVMArgs
 	}
 
 	return &raw.Version, nil
