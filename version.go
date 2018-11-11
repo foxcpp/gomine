@@ -23,11 +23,11 @@ const (
 )
 
 type Rule struct {
-	Action RuleAct `json:"action"`
+	Action RuleAct `json:"action" mapstructure:"action"`
 	OS     struct {
-		Name          string `json:"name"`
-		VersionRegexp string `json:"version"`
-	} `json:"os"`
+		Name          string `json:"name" mapstructure:"name"`
+		VersionRegexp string `json:"version" mapstructure:"version"`
+	} `json:"os" mapstructure:"os"`
 }
 
 type AssetIndex struct {
@@ -46,7 +46,7 @@ type LibClassifiers struct {
 
 type Lib struct {
 	Downloads struct {
-		MainJar *Artifact `json:"artifact"`
+		MainJar        *Artifact `json:"artifact"`
 		LibClassifiers `json:"classifiers"`
 	} `json:"downloads"`
 	NativeSuffixes struct {
@@ -54,8 +54,8 @@ type Lib struct {
 		MacOS   string `json:"osx"`
 		Windows string `json:"windows"`
 	} `json:"natives"`
-	Name  string `json:"name"`
-	Rules []Rule `json:"rules"`
+	Name         string `json:"name"`
+	Rules        []Rule `json:"rules"`
 	ExtractRules struct {
 		Exclude []string `json:"exclude"`
 	} `json:"extract"`

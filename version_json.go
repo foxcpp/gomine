@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
+
+	"github.com/mitchellh/mapstructure"
 )
 
 var ErrIncompatibleFormat = errors.New("ReadVersionJSON: JSON format version is higher than supported by library")
@@ -64,6 +66,18 @@ func processRawArgs(raw []interface{}) ([]Argument, error) {
 				saneArg.Value = strings.Join(strArr, " ")
 			default:
 				return res, ErrInvalidFormat
+			}
+
+			rules, ok := mapArg["rules"].([]interface{})
+			if ok {
+				saneArg.Rules = make([]Rule, 0, len(rules))
+				for _, rawRule := range rules {
+					rule := Rule{}
+					if err := mapstructure.Decode(rawRule, &rule); err != nil {
+						return res, ErrInvalidFormat
+					}
+					saneArg.Rules = append(saneArg.Rules, rule)
+				}
 			}
 
 			res = append(res, saneArg)
