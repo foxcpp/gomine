@@ -42,7 +42,7 @@ func (l *Lib) SavePath() (string, error) {
 		return "", err
 	}
 	pkgPath := strings.Replace(pkg, ".", string(os.PathSeparator), -1)
-	return filepath.Join(pkgPath, name, version, name + "-" + version + ".jar"), nil
+	return filepath.Join(pkgPath, name, version, name+"-"+version+".jar"), nil
 }
 
 // NativeSavePath returns FS path where library's "native" component should be stored when downloaded (path is
@@ -79,7 +79,7 @@ func (l *Lib) NativeSavePath() (string, error) {
 		return "", err
 	}
 	pkgPath := strings.Replace(pkg, ".", string(os.PathSeparator), -1)
-	return filepath.Join(pkgPath, name, version, name + "-" + version + "-" + nativeStr + ".jar"), nil
+	return filepath.Join(pkgPath, name, version, name+"-"+version+"-"+nativeStr+".jar"), nil
 }
 
 func (l *Lib) SplitName() (pkg, name, version string, err error) {
@@ -160,7 +160,6 @@ func (v *Version) DownloadLibraries(libDir string) error {
 			return errors.Wrapf(err, "failed to get save path for %s", lib.Name)
 		}
 		if path != "" && lib.Downloads.MainJar != nil {
-			log.Println("Downloading library", path + "...")
 			if err := lib.Downloads.MainJar.Download(filepath.Join(libDir, path)); err != nil {
 				return errors.Wrapf(err, "failed to download %s", lib.Name)
 			}
@@ -171,7 +170,6 @@ func (v *Version) DownloadLibraries(libDir string) error {
 			return errors.Wrapf(err, "failed to get native save path for %s", lib.Name)
 		}
 		if nativePath != "" {
-			log.Println("Downloading native library", nativePath + "...")
 			if err := lib.Native().Download(filepath.Join(libDir, nativePath)); err != nil {
 				return errors.Wrapf(err, "failed to download natives for %s", lib.Name)
 			}
@@ -186,7 +184,7 @@ func (v *Version) ExtractNatives(libDir, nativeDir string) error {
 			continue
 		}
 		savePath, _ := lib.NativeSavePath()
-		log.Println("Extracting native libraries from ", savePath + "...")
+		log.Println("Extracting native libraries from", savePath+"...")
 		if err := lib.ExtractNative(libDir, nativeDir); err != nil {
 			return errors.Wrapf(err, "failed to extract natives for %s", lib.Name)
 		}
@@ -195,29 +193,27 @@ func (v *Version) ExtractNatives(libDir, nativeDir string) error {
 }
 
 func (v *Version) DownloadClient(versionsDir string) error {
-	jarPath := filepath.Join(versionsDir, v.ID, v.ID + ".jar")
+	jarPath := filepath.Join(versionsDir, v.ID, v.ID+".jar")
 
 	if err := os.MkdirAll(filepath.Dir(jarPath), os.ModePerm); err != nil {
 		return errors.Wrap(err, "failed to create version directory")
 	}
 
-	log.Println("Downloading client JAR", v.ID + ".jar...")
 	return v.Downloads.Client.Download(jarPath)
 }
 
 func (v *Version) DownloadAssetsIndex(assetsDir string) error {
-	assetsIndxPath := filepath.Join(assetsDir, "indexes", v.AssetIndex.ID + ".json")
+	assetsIndxPath := filepath.Join(assetsDir, "indexes", v.AssetIndex.ID+".json")
 
 	if err := os.MkdirAll(filepath.Dir(assetsIndxPath), os.ModePerm); err != nil {
 		return errors.Wrap(err, "failed to create version directory")
 	}
 
-	log.Println("Downloading asset index", v.AssetIndex.ID + ".json...")
 	return v.AssetIndex.Download(assetsIndxPath)
 }
 
 func (v *Version) DownloadAssets(assetsDir string) error {
-	assetsIndxPath := filepath.Join(assetsDir, "indexes", v.AssetIndex.ID + ".json")
+	assetsIndxPath := filepath.Join(assetsDir, "indexes", v.AssetIndex.ID+".json")
 
 	assetsIndxBlob, err := ioutil.ReadFile(assetsIndxPath)
 	if err != nil {
@@ -235,7 +231,6 @@ func (v *Version) DownloadAssets(assetsDir string) error {
 	}
 
 	for path, asset := range indx.Objects {
-		log.Println("Downloading asset", path + "...")
 		if err := asset.Download(objectsDir); err != nil {
 			return errors.Wrapf(err, "failed to download asset %s", path)
 		}
@@ -272,6 +267,7 @@ func downloadAndCheck(targetPath, url, expectedHash string) error {
 		// if existing file doesn't matches hash - redownload.
 	}
 
+	log.Println("Downloading", url+"...")
 	resp, err := http.Get(url)
 	if err != nil {
 		return errors.Wrap(err, "failed to start download")
@@ -303,7 +299,7 @@ func downloadAndCheck(targetPath, url, expectedHash string) error {
 	outFile.Close()
 	resp.Body.Close()
 
-	if err := os.Rename(targetPath+ ".new", targetPath); err != nil {
+	if err := os.Rename(targetPath+".new", targetPath); err != nil {
 		return errors.Wrap(err, "failed to rename artifact file")
 	}
 	return nil

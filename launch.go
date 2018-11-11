@@ -2,37 +2,38 @@ package gomine
 
 import (
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
 )
 
-func (v *Version) BuildCommandLine(prof Profile, authData AuthData, versionsDir, libsDir, nativesDir, assetsDir string) (string, error) {
+func (v *Version) BuildCommandLine(prof Profile, authData AuthData, versionsDir, libsDir, nativesDir, assetsDir string) (bin string, args []string, err error) {
 	gameDir, err := filepath.Abs(prof.GameDir)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get abs path")
+		return "", nil, errors.Wrap(err, "failed to get abs path")
 	}
 	versionsDir, err = filepath.Abs(versionsDir)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get abs path")
+		return "", nil, errors.Wrap(err, "failed to get abs path")
 	}
 	libsDir, err = filepath.Abs(libsDir)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get abs path")
+		return "", nil, errors.Wrap(err, "failed to get abs path")
 	}
 	nativesDir, err = filepath.Abs(nativesDir)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get abs path")
+		return "", nil, errors.Wrap(err, "failed to get abs path")
 	}
 	assetsDir, err = filepath.Abs(assetsDir)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get abs path")
+		return "", nil, errors.Wrap(err, "failed to get abs path")
 	}
 
 	classPath, err := v.BuildClassPath(versionsDir, libsDir)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to build classpath")
+		return "", nil, errors.Wrap(err, "failed to build classpath")
 	}
 
 	argsReplacer := strings.NewReplacer(
@@ -53,16 +54,15 @@ func (v *Version) BuildCommandLine(prof Profile, authData AuthData, versionsDir,
 		"${resolution_height}", strconv.Itoa(prof.ResolutionHeight),
 	)
 
-	cmdLine := make([]string, 0, len(v.JVMArgs)+len(v.GameArgs)+5 /* java bin, custom args, main class */)
+	cmdLine := make([]string, 0, len(v.JVMArgs)+len(v.GameArgs)+10)
 
 	javaBin := prof.JVMPath
 	if javaBin == "" {
 		javaBin, err = findSystemJava()
 		if err != nil {
-			return "", errors.Wrap(err, "failed to detect system java")
+			return "", nil, errors.Wrap(err, "failed to detect system java")
 		}
 	}
-	cmdLine = append(cmdLine, javaBin)
 
 	for _, arg := range v.JVMArgs {
 		if !EvaluateRules(arg.Rules, &prof) {
@@ -71,7 +71,7 @@ func (v *Version) BuildCommandLine(prof Profile, authData AuthData, versionsDir,
 
 		cmdLine = append(cmdLine, argsReplacer.Replace(arg.Value))
 	}
-	cmdLine = append(cmdLine, argsReplacer.Replace(prof.CustomJVMArgs))
+	cmdLine = append(cmdLine, strings.Split(argsReplacer.Replace(prof.CustomJVMArgs), " ")...)
 	if prof.HeapMaxMB != 0 {
 		cmdLine = append(cmdLine, "-Xmx"+strconv.Itoa(prof.HeapMaxMB)+"M")
 	}
@@ -85,12 +85,19 @@ func (v *Version) BuildCommandLine(prof Profile, authData AuthData, versionsDir,
 
 		cmdLine = append(cmdLine, argsReplacer.Replace(arg.Value))
 	}
-	cmdLine = append(cmdLine, argsReplacer.Replace(prof.CustomGameArgs))
+	cmdLine = append(cmdLine, strings.Split(argsReplacer.Replace(prof.CustomGameArgs), " ")...)
 
-	return strings.Join(cmdLine, " "), nil
+	return javaBin, cmdLine, nil
 }
 
 func (v *Version) BuildClassPath(versionDir, libsDir string) (string, error) {
+	var pathSep string
+	if runtime.GOOS == "windows" {
+		pathSep = ";"
+	} else {
+		pathSep = ":"
+	}
+
 	libs := make([]string, 0, len(v.Libraries)+1)
 	for _, lib := range v.Libraries {
 		if !lib.ShouldUse() {
@@ -106,5 +113,5 @@ func (v *Version) BuildClassPath(versionDir, libsDir string) (string, error) {
 	}
 	libs = append(libs, filepath.Join(versionDir, v.ID, v.ID+".jar"))
 
-	return strings.Join(libs, ":"), nil
+	return strings.Join(libs, pathSep), nil
 }

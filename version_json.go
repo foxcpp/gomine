@@ -15,7 +15,7 @@ var defaultJVMArgs = []Argument{
 	{Value: "-Dminecraft.launcher.brand=${launcher_name}"},
 	{Value: "-Dminecraft.launcher.version=${launcher_version}"},
 	{Value: "-cp"},
-	{Value:"${classpath}"},
+	{Value: "${classpath}"},
 	{Value: "-Xmx2G"},
 	{Value: "-XX:+UnlockExperimentalVMOptions"},
 	{Value: "-XX:+UseG1GC"},

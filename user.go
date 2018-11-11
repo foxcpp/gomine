@@ -1,11 +1,13 @@
 package gomine
 
 type Profile struct {
+	VersionID string
 	GameDir                           string
 	JVMPath                           string
 	HeapMaxMB                         int
 	CustomJVMArgs                     string
 	CustomGameArgs 					  string
+
 	ResolutionWidth, ResolutionHeight int
 }
 
