@@ -69,9 +69,23 @@ func (v *Version) BuildCommandLine(prof Profile, authData AuthData, versionsDir,
 			continue
 		}
 
-		cmdLine = append(cmdLine, argsReplacer.Replace(arg.Value))
+		// It's important to split "grouped" arguments like
+		// "-Da=1 -Db=2".
+		// But strings.Split can easily give us "", which is unacceptable and wouuld break
+		// command.
+		for _, part := range strings.Split(argsReplacer.Replace(arg.Value), " ") {
+			if part == "" {
+				continue
+			}
+			cmdLine = append(cmdLine, part)
+		}
 	}
-	cmdLine = append(cmdLine, strings.Split(argsReplacer.Replace(prof.CustomJVMArgs), " ")...)
+	for _, part := range strings.Split(argsReplacer.Replace(prof.CustomJVMArgs), " ") {
+		if part == "" {
+			continue
+		}
+		cmdLine = append(cmdLine, part)
+	}
 	if prof.HeapMaxMB != 0 {
 		cmdLine = append(cmdLine, "-Xmx"+strconv.Itoa(prof.HeapMaxMB)+"M")
 	}
@@ -79,13 +93,23 @@ func (v *Version) BuildCommandLine(prof Profile, authData AuthData, versionsDir,
 	cmdLine = append(cmdLine, v.MainClass)
 
 	for _, arg := range v.GameArgs {
-		if !EvaluateRules(arg.Rules, &prof) {
+		// It's important to split "grouped" arguments like
+		// "-Da=1 -Db=2".
+		// But strings.Split can easily give us "", which is unacceptable and wouuld break
+		// command.
+		for _, part := range strings.Split(argsReplacer.Replace(arg.Value), " ") {
+			if part == "" {
+				continue
+			}
+			cmdLine = append(cmdLine, part)
+		}
+	}
+	for _, part := range strings.Split(argsReplacer.Replace(prof.CustomGameArgs), " ") {
+		if part == "" {
 			continue
 		}
-
-		cmdLine = append(cmdLine, argsReplacer.Replace(arg.Value))
+		cmdLine = append(cmdLine, part)
 	}
-	cmdLine = append(cmdLine, strings.Split(argsReplacer.Replace(prof.CustomGameArgs), " ")...)
 
 	return javaBin, cmdLine, nil
 }

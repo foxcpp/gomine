@@ -4,12 +4,10 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -143,8 +141,8 @@ func (r *Root) RunVersion(ver *Version, prof *Profile, logRedirect io.Writer) er
 	if err != nil {
 		return err
 	}
-	log.Println("Command line:", bin, args)
-	cmd := exec.Command("sh", "-noprofile", "-c", bin+" -verbose=class "+strings.Join(args, " "))
+	//log.Println("Command line:", bin, args)
+	cmd := exec.Command(bin, args...)
 	if logRedirect == nil {
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
