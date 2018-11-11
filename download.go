@@ -122,6 +122,14 @@ func (l *Lib) ExtractNative(libDir, nativeDir string) error {
 			continue
 		}
 
+		if file.FileInfo().IsDir() {
+			continue
+		}
+		if _, err := os.Stat(filepath.Join(nativeDir, file.Name)); err == nil {
+			continue
+		}
+		log.Println("Extracting", file.Name, "from", nativePath+"...")
+
 		rc, err := file.Open()
 		if err != nil {
 			return errors.Wrapf(err, "failed to extract %s", file.Name)
@@ -183,8 +191,6 @@ func (v *Version) ExtractNatives(libDir, nativeDir string) error {
 		if !lib.ShouldUse() || lib.Native() == nil {
 			continue
 		}
-		savePath, _ := lib.NativeSavePath()
-		log.Println("Extracting native libraries from", savePath+"...")
 		if err := lib.ExtractNative(libDir, nativeDir); err != nil {
 			return errors.Wrapf(err, "failed to extract natives for %s", lib.Name)
 		}

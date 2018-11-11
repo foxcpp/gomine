@@ -123,20 +123,14 @@ func (r *Root) UpdateVersion(ver *Version) error {
 	if err := ver.DownloadClient(r.VersionsDir()); err != nil {
 		return err
 	}
+	if err := ver.ExtractNatives(r.LibrariesDir(), filepath.Join(r.VersionsDir(), ver.ID, "natives")); err != nil {
+		return err
+	}
 	return nil
 }
 
 func (r *Root) RunVersion(ver *Version, prof *Profile, logRedirect io.Writer) error {
-	nativesDir, err := ioutil.TempDir("", "gomine")
-	if err != nil {
-		return err
-	}
-	defer os.RemoveAll(nativesDir)
-
-	if err := ver.ExtractNatives(r.LibrariesDir(), nativesDir); err != nil {
-		return err
-	}
-
+	nativesDir := filepath.Join(r.VersionsDir(), ver.ID, "natives")
 	bin, args, err := ver.BuildCommandLine(*prof, r.AuthData, r.VersionsDir(), r.LibrariesDir(), nativesDir, r.AssetsDir())
 	if err != nil {
 		return err
