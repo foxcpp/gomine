@@ -24,10 +24,16 @@ const (
 
 type Rule struct {
 	Action RuleAct `json:"action" mapstructure:"action"`
+	// OS information. All fields are regexes.
 	OS     struct {
-		Name          string `json:"name" mapstructure:"name"`
-		VersionRegexp string `json:"version" mapstructure:"version"`
+		Name    string `json:"name" mapstructure:"name"`
+		Version string `json:"version" mapstructure:"version"`
+		Arch    string `json:"arch" mapstructure:"arch"`
 	} `json:"os" mapstructure:"os"`
+	Features struct {
+		IsDemoUser *bool `json:"is_demo_user" mapstructure:"is_demo_user"`
+		HasCustomResolution *bool `json:"has_custom_resolution" mapstructure:"has_custom_resolution"`
+	} `json:"features" mapstructure:"features"`
 }
 
 type AssetIndex struct {
